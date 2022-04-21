@@ -363,6 +363,7 @@ export function triggerEffects(
   const effects = isArray(dep) ? dep : [...dep]
   // 循环遍历 按照一定的调度方式运行对应的依赖
   for (const effect of effects) {
+    // 循环2次，先trigger computed？
     if (effect.computed) {
       triggerEffect(effect, debuggerEventExtraInfo)
     }
