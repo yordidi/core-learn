@@ -703,7 +703,7 @@ export function buildProps(
       elementLoc
     )
   }
-
+// 每次都按位与可以将多个数值进行设置
   // patchFlag analysis
   if (hasDynamicKeys) {
     patchFlag |= PatchFlags.FULL_PROPS

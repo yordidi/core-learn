@@ -247,7 +247,9 @@ export function trackEffects(
   }
 
   if (shouldTrack) {
+    // 收集当前的effect作为依赖
     dep.add(activeEffect!)
+    // 当前的effect收集dep集合作为依赖
     activeEffect!.deps.push(dep)
     if (__DEV__ && activeEffect!.onTrack) {
       activeEffect!.onTrack({
@@ -257,7 +259,13 @@ export function trackEffects(
     }
   }
 }
-
+/**
+ * trigger触发依赖
+ * 首先获取当前target对应的依赖映射表，如果没有，说明这个target没有依赖，直接返回，否则进行下一步。
+ * 然后声明一个ReactiveEffect集合和一个向集合中添加元素的方法。
+ * 根据不同类型选择使用不同的方式向ReactiveEffect中添加当前key对应的依赖。
+ * 声明一个调度方式，根据我们传入ReactiveEffect函数中不同的参数选择使用不同的调度run方法，并循环遍历执行。
+ */
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -266,6 +274,7 @@ export function trigger(
   oldValue?: unknown,
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
+  // 获取当前target的依赖映射表
   const depsMap = targetMap.get(target)
   if (!depsMap) {
     // never been tracked
@@ -288,7 +297,7 @@ export function trigger(
     if (key !== void 0) {
       deps.push(depsMap.get(key))
     }
-
+    // 根据不同的类型选择使用不同的方式将当前key的依赖添加到effects
     // also run for iteration key on ADD | DELETE | Map.SET
     switch (type) {
       case TriggerOpTypes.ADD:
@@ -331,6 +340,7 @@ export function trigger(
       }
     }
   } else {
+    // 声明一个集合和方法，用于添加当前key对应的依赖集合
     const effects: ReactiveEffect[] = []
     for (const dep of deps) {
       if (dep) {
@@ -351,6 +361,7 @@ export function triggerEffects(
 ) {
   // spread into array for stabilization
   const effects = isArray(dep) ? dep : [...dep]
+  // 循环遍历 按照一定的调度方式运行对应的依赖
   for (const effect of effects) {
     if (effect.computed) {
       triggerEffect(effect, debuggerEventExtraInfo)
@@ -371,6 +382,7 @@ function triggerEffect(
     if (__DEV__ && effect.onTrigger) {
       effect.onTrigger(extend({ effect }, debuggerEventExtraInfo))
     }
+    // 执行一个调度方法，添加到队列
     if (effect.scheduler) {
       effect.scheduler()
     } else {
