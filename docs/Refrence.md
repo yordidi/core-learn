@@ -25,3 +25,7 @@ https://juejin.cn/post/6844904134110363662#heading-8
 [组合式 API 征求意见稿](https://vue3js.cn/vue-composition/)
 
 [SFC 工具](https://v3.cn.vuejs.org/api/sfc-tooling.html)
+
+[Vue3教程：Vue 3.x 快在哪里？](https://juejin.cn/post/6903171037211557895)
+[浅析我们为什么要上Vue3？](https://juejin.cn/post/7046922345864232974)
+[面试官：Vue3.0性能提升主要是通过哪几方面体现的？](https://vue3js.cn/interview/vue3/performance.html)
