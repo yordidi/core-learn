@@ -104,7 +104,7 @@ class RefImpl<T> {
     this._rawValue = __v_isShallow ? value : toRaw(value)
     this._value = __v_isShallow ? value : toReactive(value)
   }
-
+ // ref数据的set、get是在value上操作的
   get value() {
     trackRefValue(this)
     return this._value

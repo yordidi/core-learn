@@ -119,7 +119,7 @@ function createGetter(isReadonly = false, shallow = false) {
     if (!isReadonly) {
       track(target, TrackOpTypes.GET, key)
     }
-
+    // shallow 模式只追踪root level property变化，不追踪深层次变化，并且不自动解包  
     if (shallow) {
       return res
     }

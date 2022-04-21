@@ -209,13 +209,15 @@ export function resetTracking() {
   const last = trackStack.pop()
   shouldTrack = last === undefined ? true : last
 }
-
+// 
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (shouldTrack && activeEffect) {
+    // 获取当前target对象对应depsMap
     let depsMap = targetMap.get(target)
     if (!depsMap) {
       targetMap.set(target, (depsMap = new Map()))
     }
+     // 获取当前key对应dep依赖
     let dep = depsMap.get(key)
     if (!dep) {
       depsMap.set(key, (dep = createDep()))
