@@ -152,19 +152,24 @@ function createSetter(shallow = false) {
     receiver: object
   ): boolean {
     let oldValue = (target as any)[key]
+    // 如果oldValue是只读，并且是ref，并且newValue不是ref，返回false
     if (isReadonly(oldValue) && isRef(oldValue) && !isRef(value)) {
       return false
     }
+    // [{}]
     if (!shallow && !isReadonly(value)) {
+      // ???
       if (!isShallow(value)) {
         value = toRaw(value)
         oldValue = toRaw(oldValue)
       }
+      // 如果非数组，直接修改，返回true
       if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
         oldValue.value = value
         return true
       }
     } else {
+      // 如果是shallow或readonly模式，忽略reactive？
       // in shallow mode, objects are set as-is regardless of reactive or not
     }
 
@@ -174,10 +179,13 @@ function createSetter(shallow = false) {
         : hasOwn(target, key)
     const result = Reflect.set(target, key, value, receiver)
     // don't trigger if target is something up in the prototype chain of original
+    // 如果target是origin原型链上的prototype，则不trigger
     if (target === toRaw(receiver)) {
+      // 没有旧key，包含数组数字索引，则trigger add，触发依赖监听
       if (!hadKey) {
          // 触发监听
         trigger(target, TriggerOpTypes.ADD, key, value)
+      // 否则比较新旧value，trigger set，触发依赖监听
       } else if (hasChanged(value, oldValue)) {
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
