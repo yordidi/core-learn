@@ -52,7 +52,7 @@ function createArrayInstrumentations() {
   const instrumentations: Record<string, Function> = {}
   // instrument identity-sensitive Array methods to account for possible reactive
   // values
-  // 检索api，追踪所有元素的响应性
+  // 检索api，追踪所有元素的响应性。因为vue3响应性是懒追踪的，直接调用indexOf会检索全数组，但是不一定每个数组元素都添加过响应性
   ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       const arr = toRaw(this) as any
@@ -163,7 +163,7 @@ function createSetter(shallow = false) {
     }
     // [{}]
     if (!shallow && !isReadonly(value)) {
-      // ???
+      // shallow响应嵌套在deep影响性里，不会追踪
       if (!isShallow(value)) {
         value = toRaw(value)
         oldValue = toRaw(oldValue)

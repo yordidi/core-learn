@@ -22,17 +22,19 @@ describe('reactivity/reactive/Array', () => {
     const original = [{ foo: 1 }]
     const observed = reactive(original)
     const clone = observed.slice()
+    // 拷贝的数组元素引用地址是响应性的
     expect(isReactive(clone[0])).toBe(true)
     expect(clone[0]).not.toBe(original[0])
     expect(clone[0]).toBe(observed[0])
   })
-
+  // 对响应性数组元素的改动会代理到原数组元素
   test('observed value should proxy mutations to original (Array)', () => {
     const original: any[] = [{ foo: 1 }, { bar: 2 }]
     const observed = reactive(original)
     // set
     const value = { baz: 3 }
     const reactiveValue = reactive(value)
+    // 响应性数组修改obj，自动变成响应性obj
     observed[0] = value
     expect(observed[0]).toBe(reactiveValue)
     expect(original[0]).toBe(value)
@@ -45,7 +47,7 @@ describe('reactivity/reactive/Array', () => {
     expect(observed[2]).toBe(reactiveValue)
     expect(original[2]).toBe(value)
   })
-
+  // 在响应性数据和原数组上，保持方法一致性
   test('Array identity methods should work with raw values', () => {
     const raw = {}
     const arr = reactive([{}, {}])
@@ -77,7 +79,7 @@ describe('reactivity/reactive/Array', () => {
 
   test('Array identity methods should be reactive', () => {
     const obj = {}
-    const arr = reactive([obj, {}])
+    const arr = reactive([obj, {a:1}])
 
     let index: number = -1
     effect(() => {
@@ -87,7 +89,7 @@ describe('reactivity/reactive/Array', () => {
     arr.reverse()
     expect(index).toBe(1)
   })
-
+  // delete 不会触发依赖数组length的回调
   test('delete on Array should not trigger length dependency', () => {
     const arr = reactive([1, 2, 3])
     const fn = jest.fn()

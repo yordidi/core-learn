@@ -286,7 +286,9 @@ export function trigger(
     // collection being cleared
     // trigger all effects for target
     deps = [...depsMap.values()]
+  // key is length，且数组，
   } else if (key === 'length' && isArray(target)) {
+    // 这里的 key 是索引值，取 length 和 索引值key >= newLength 的 deps
     depsMap.forEach((dep, key) => {
       if (key === 'length' || key >= (newValue as number)) {
         deps.push(dep)
