@@ -52,6 +52,7 @@ function createArrayInstrumentations() {
   const instrumentations: Record<string, Function> = {}
   // instrument identity-sensitive Array methods to account for possible reactive
   // values
+  // 检索api，追踪所有元素的响应性
   ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       const arr = toRaw(this) as any
@@ -70,6 +71,7 @@ function createArrayInstrumentations() {
   })
   // instrument length-altering mutation methods to avoid length being tracked
   // which leads to infinite loops in some cases (#2137)
+  // 会改变数组长度，暂停追踪响应性
   ;(['push', 'pop', 'shift', 'unshift', 'splice'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       pauseTracking()
@@ -105,17 +107,18 @@ function createGetter(isReadonly = false, shallow = false) {
     }
 
     const targetIsArray = isArray(target)
-
+    // 如果是数组 & 非只读 & 存在（lastIndexOf、indexOf、includes、push、pop、shift、unshift），
+    // 用一个arrayInstrumentations，特殊处理
     if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
       return Reflect.get(arrayInstrumentations, key, receiver)
     }
-
+    // 如果是Object | 只读数组 | 不存在索引的数组
     const res = Reflect.get(target, key, receiver)
-
+    // key是内置symbol，或者非追踪的key，直接取值返回
     if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
       return res
     }
-
+    // 只读模式，不需要追踪依赖
     if (!isReadonly) {
       track(target, TrackOpTypes.GET, key)
     }
@@ -123,13 +126,15 @@ function createGetter(isReadonly = false, shallow = false) {
     if (shallow) {
       return res
     }
-
+   
     if (isRef(res)) {
+      // 自动解包，但是不会对 Array 的数字key自动解包，例如 arr[0] = ref(0), arr['' as any] = ref(1)
       // ref unwrapping - does not apply for Array + integer key.
       const shouldUnwrap = !targetIsArray || !isIntegerKey(key)
       return shouldUnwrap ? res.value : res
     }
-
+    // 惰性添加响应性 
+    // 但是，不会给数组元素添加响应性。例如ref([1,2,3])
     if (isObject(res)) {
       // Convert returned value into a proxy as well. we do the isObject check
       // here to avoid invalid value warning. Also need to lazy access readonly

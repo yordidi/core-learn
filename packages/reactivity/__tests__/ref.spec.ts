@@ -90,14 +90,15 @@ describe('reactivity/ref', () => {
     obj.b.c++
     assertDummiesEqualTo(4)
   })
-
+  // 嵌套ref，自动解包
   it('should unwrap nested ref in types', () => {
     const a = ref(0)
     const b = ref(a)
 
+    expect(b.value + 1).toBe(1)
     expect(typeof (b.value + 1)).toBe('number')
   })
-
+  // ref(object)自动解包
   it('should unwrap nested values in types', () => {
     const a = {
       b: ref(0)
@@ -108,26 +109,39 @@ describe('reactivity/ref', () => {
     expect(typeof (c.value.b + 1)).toBe('number')
   })
 
+  // ref([])，数组不会给元素添加响应性
   it('should NOT unwrap ref types nested inside arrays', () => {
     const arr = ref([1, ref(3)]).value
     expect(isRef(arr[0])).toBe(false)
     expect(isRef(arr[1])).toBe(true)
     expect((arr[1] as Ref).value).toBe(3)
   })
-
+  // 自动解包，但是不会对 Array 的数字key自动解包
   it('should unwrap ref types as props of arrays', () => {
-    const arr = [ref(0)]
+    // const arr = [ref(0)]
+    const arr = []
+    arr[0] = ref(0);
     const symbolKey = Symbol('')
     arr['' as any] = ref(1)
     arr[symbolKey as any] = ref(2)
     const arrRef = ref(arr).value
+    // 索引，不会自动解包
     expect(isRef(arrRef[0])).toBe(true)
+    // 非索引，自动解包
     expect(isRef(arrRef['' as any])).toBe(false)
     expect(isRef(arrRef[symbolKey as any])).toBe(false)
     expect(arrRef['' as any]).toBe(1)
     expect(arrRef[symbolKey as any]).toBe(2)
   })
+  // ref([{ a: 3 }])，嵌套数组，会添加响应性。
+  it('should reactive object in arrays', () => {
+    const arr:[{a:number}] = [{ a: 3 }]
+    const arrRef = ref(arr).value
 
+    expect(isReactive(arrRef[0])).toBe(true)
+    expect(arrRef[0].a).toBe(3)
+  })
+  
   it('should keep tuple types', () => {
     const tuple: [number, string, { a: number }, () => number, Ref<number>] = [
       0,
@@ -137,6 +151,12 @@ describe('reactivity/ref', () => {
       ref(0)
     ]
     const tupleRef = ref(tuple)
+    // 索引，不会自动解包
+    expect(isRef(tupleRef.value[0])).toBe(false)
+    // 索引，不会自动解包
+    expect(isRef(tupleRef.value[2])).toBe(false)
+
+    expect(isReactive(tupleRef.value[2].a)).toBe(false)
 
     tupleRef.value[0]++
     expect(tupleRef.value[0]).toBe(1)

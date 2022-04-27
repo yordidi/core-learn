@@ -69,6 +69,7 @@ export function ref<T extends object>(
 ): [T] extends [Ref] ? T : Ref<UnwrapRef<T>>
 export function ref<T>(value: T): Ref<UnwrapRef<T>>
 export function ref<T = any>(): Ref<T | undefined>
+// value可选值，ref可以用undefined初始化
 export function ref(value?: unknown) {
   return createRef(value, false)
 }
@@ -87,6 +88,7 @@ export function shallowRef(value?: unknown) {
 }
 
 function createRef(rawValue: unknown, shallow: boolean) {
+  // 嵌套ref，直接返回，比如 let a = ref(0), b = ref(a)
   if (isRef(rawValue)) {
     return rawValue
   }

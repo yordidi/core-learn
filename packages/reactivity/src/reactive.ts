@@ -209,6 +209,8 @@ function createReactiveObject(
   if (targetType === TargetType.INVALID) {
     return target
   }
+  // Map、Set、WeakMap、WeakSet 用collectionHandlers
+  // Object、Array 用 baseHandlers
   const proxy = new Proxy(
     target,
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
